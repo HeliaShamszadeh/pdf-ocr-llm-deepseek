@@ -311,65 +311,65 @@ with gr.Blocks(title="PDF OCR with Vision Language Models", theme=custom_theme) 
                 outputs=[pdf_download]
             )
         
-        # Batch PDF Processing Tab
-        with gr.Tab("Batch PDF Processing"):
-            with gr.Row():
-                with gr.Column():
-                    batch_input = gr.File(
-                        label="Upload PDFs",
-                        file_types=[".pdf"],
-                        file_count="multiple",
-                        type="filepath"
-                    )
-                    batch_model = gr.Dropdown(
-                        choices=available_models,
-                        label="Select Model",
-                        value=available_models[0] if available_models else None,
-                        info="Choose the vision-language model to use"
-                    )
+        # # Batch PDF Processing Tab
+        # with gr.Tab("Batch PDF Processing"):
+        #     with gr.Row():
+        #         with gr.Column():
+        #             batch_input = gr.File(
+        #                 label="Upload PDFs",
+        #                 file_types=[".pdf"],
+        #                 file_count="multiple",
+        #                 type="filepath"
+        #             )
+        #             batch_model = gr.Dropdown(
+        #                 choices=available_models,
+        #                 label="Select Model",
+        #                 value=available_models[0] if available_models else None,
+        #                 info="Choose the vision-language model to use"
+        #             )
                     
-                    # Generation Parameters (Collapsible)
-                    with gr.Accordion("Generation Parameters", open=False):
-                        batch_temperature = gr.Slider(
-                            minimum=0.0,
-                            maximum=1.0,
-                            value=0.1,
-                            step=0.1,
-                            label="Temperature",
-                            info="Controls randomness (0=deterministic, 1=creative)"
-                        )
-                        batch_top_p = gr.Slider(
-                            minimum=0.0,
-                            maximum=1.0,
-                            value=0.9,
-                            step=0.05,
-                            label="Top P",
-                            info="Nucleus sampling threshold"
-                        )
-                        batch_max_tokens = gr.Slider(
-                            minimum=128,
-                            maximum=4096,
-                            value=2048,
-                            step=128,
-                            label="Max Output Tokens",
-                            info="Maximum length of generated text"
-                        )
+        #             # Generation Parameters (Collapsible)
+        #             with gr.Accordion("Generation Parameters", open=False):
+        #                 batch_temperature = gr.Slider(
+        #                     minimum=0.0,
+        #                     maximum=1.0,
+        #                     value=0.1,
+        #                     step=0.1,
+        #                     label="Temperature",
+        #                     info="Controls randomness (0=deterministic, 1=creative)"
+        #                 )
+        #                 batch_top_p = gr.Slider(
+        #                     minimum=0.0,
+        #                     maximum=1.0,
+        #                     value=0.9,
+        #                     step=0.05,
+        #                     label="Top P",
+        #                     info="Nucleus sampling threshold"
+        #                 )
+        #                 batch_max_tokens = gr.Slider(
+        #                     minimum=128,
+        #                     maximum=4096,
+        #                     value=2048,
+        #                     step=128,
+        #                     label="Max Output Tokens",
+        #                     info="Maximum length of generated text"
+        #                 )
                     
-                    batch_button = gr.Button("Process All PDFs", variant="primary")
+        #             batch_button = gr.Button("Process All PDFs", variant="primary")
                 
-                with gr.Column():
-                    batch_status = gr.Textbox(
-                        label="Processing Status",
-                        lines=15,
-                        interactive=False
-                    )
-                    batch_download = gr.File(label="Download Results (ZIP)")
+        #         with gr.Column():
+        #             batch_status = gr.Textbox(
+        #                 label="Processing Status",
+        #                 lines=15,
+        #                 interactive=False
+        #             )
+        #             batch_download = gr.File(label="Download Results (ZIP)")
             
-            batch_button.click(
-                fn=process_batch_pdfs,
-                inputs=[batch_input, batch_model, batch_temperature, batch_top_p, batch_max_tokens],
-                outputs=[batch_download, batch_status]
-            )
+        #     batch_button.click(
+        #         fn=process_batch_pdfs,
+        #         inputs=[batch_input, batch_model, batch_temperature, batch_top_p, batch_max_tokens],
+        #         outputs=[batch_download, batch_status]
+        #     )
         
         # Image Processing Tab
         with gr.Tab("Image Processing"):
