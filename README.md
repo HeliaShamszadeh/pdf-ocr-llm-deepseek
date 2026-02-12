@@ -5,6 +5,7 @@ A professional PDF OCR system that leverages state-of-the-art vision-language mo
 ## Features
 
 - **State-of-the-art Models**: Multiple vision-language model families
+  - DeepSeek-OCR
   - Qwen 3 VL: 4B, 8B, 30B, 235B (Latest)
   - Qwen 2.5 VL: 3B, 7B, 32B, 72B
   - InternVL 3.5: 1B, 2B, 4B, 8B, 14B, 30B, 38B, 241B
