@@ -88,126 +88,45 @@ system_info = get_system_info()
 
 
 def process_pdf(pdf_file, model_name, custom_prompt, temperature, top_p, max_tokens):
-    """
-    Process a PDF file and extract text.
-    
-    Args:
-        pdf_file: Uploaded PDF file path
-        model_name: Selected model name
-        custom_prompt: Custom prompt (optional)
-        temperature: Sampling temperature
-        top_p: Top-p sampling
-        max_tokens: Maximum output tokens
-    
-    Returns:
-        Extracted markdown text
-    """
-    if pdf_file is None:
-        return "Please upload a PDF file."
-    
-    if not model_name:
-        return "Please select a model."
-    
+    if not pdf_file or not model_name: return "Error: Missing file or model", "Failed"
     try:
-        # Create temp output file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".md", mode='w', encoding='utf-8') as temp_output:
-            temp_output_path = temp_output.name
-        
-        # Process PDF
-        logger.info(f"Processing PDF: {pdf_file} with model: {model_name}")
-        prompt = custom_prompt if custom_prompt.strip() else None
+        # Create temp path for pipeline
+        temp_output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".json").name
         
         result = pipeline.process_pdf(
             pdf_path=pdf_file,
             model_name=model_name,
             output_path=temp_output_path,
-            prompt=prompt,
+            prompt=custom_prompt,
             temperature=temperature,
             top_p=top_p,
             max_new_tokens=int(max_tokens)
         )
         
-        # Read the output
-        with open(temp_output_path, 'r', encoding='utf-8') as f:
-            markdown_text = f.read()
-        
-        # Cleanup
-        os.unlink(temp_output_path)
-        
-        # Prepare status message
-        status = f"Successfully processed {result.get('num_pages', 0)} pages in {result.get('processing_time', 0):.2f} seconds"
-        
-        return markdown_text, status
-        
+        # UI expects the JSON string and a status
+        return result['full_text'], f"Success: {result['num_pages']} pages processed"
     except Exception as e:
-        logger.error(f"Error processing PDF: {e}")
-        return f"Error: {str(e)}", f"Processing failed: {str(e)}"
-
+        return f"Error: {str(e)}", "Failed"
 
 def process_image(image_file, model_name, custom_prompt, temperature, top_p, max_tokens):
-    """
-    Process an image file and extract text.
-    
-    Args:
-        image_file: Uploaded image file path
-        model_name: Selected model name
-        custom_prompt: Custom prompt (optional)
-        temperature: Sampling temperature
-        top_p: Top-p sampling
-        max_tokens: Maximum output tokens
-    
-    Returns:
-        Extracted markdown text
-    """
-    if image_file is None:
-        return "Please upload an image file."
-    
-    if not model_name:
-        return "Please select a model."
-    
+    if not image_file: return "Error: No image", "Failed"
     try:
-        # Create temp output file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".md", mode='w', encoding='utf-8') as temp_output:
-            temp_output_path = temp_output.name
-        
-        # Process image
-        logger.info(f"Processing image: {image_file} with model: {model_name}")
-        prompt = custom_prompt if custom_prompt.strip() else None
-        
+        temp_output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".json").name
         result = pipeline.process_image(
             image_path=image_file,
             model_name=model_name,
             output_path=temp_output_path,
-            prompt=prompt,
-            temperature=temperature,
-            top_p=top_p,
-            max_new_tokens=int(max_tokens)
+            prompt=custom_prompt
         )
-        
-        # Read the output
-        with open(temp_output_path, 'r', encoding='utf-8') as f:
-            markdown_text = f.read()
-        
-        # Cleanup
-        os.unlink(temp_output_path)
-        
-        # Prepare status message
-        status = f"Successfully processed image ({len(markdown_text)} characters extracted)"
-        
-        return markdown_text, status
-        
+        return result['full_text'], "Success: Image processed"
     except Exception as e:
-        logger.error(f"Error processing image: {e}")
-        return f"Error: {str(e)}", f"Processing failed: {str(e)}"
+        return f"Error: {str(e)}", "Failed"
 
-
-def download_markdown(markdown_text):
-    """Create a downloadable markdown file."""
-    if not markdown_text or markdown_text.startswith("Error") or markdown_text.startswith("Please"):
-        return None
-    
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".md", mode='w', encoding='utf-8') as f:
-        f.write(markdown_text)
+def download_markdown(json_text):
+    if not json_text or json_text.startswith("Error"): return None
+    # Force the download file to be .json
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json", mode='w', encoding='utf-8') as f:
+        f.write(json_text)
         return f.name
 
 
@@ -374,7 +293,7 @@ with gr.Blocks(title="PDF OCR with Vision Language Models", theme=custom_theme) 
                 with gr.Column():
                     pdf_status = gr.Textbox(label="Status", interactive=False)
                     pdf_output = gr.Textbox(
-                        label="Extracted Markdown",
+                        label="Extracted JSON",
                         lines=20,
                         show_copy_button=True
                     )
@@ -504,7 +423,7 @@ with gr.Blocks(title="PDF OCR with Vision Language Models", theme=custom_theme) 
                 with gr.Column():
                     image_status = gr.Textbox(label="Status", interactive=False)
                     image_output = gr.Textbox(
-                        label="Extracted Markdown",
+                        label="Extracted JSON",
                         lines=20,
                         show_copy_button=True
                     )

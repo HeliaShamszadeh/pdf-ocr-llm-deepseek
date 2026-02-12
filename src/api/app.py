@@ -88,68 +88,33 @@ async def list_models():
 
 
 @app.post("/process/pdf")
-async def process_pdf(
-    file: UploadFile = File(...),
-    model_name: str = Form(...),
-    prompt: Optional[str] = Form(None)
-):
-    """
-    Process a PDF file and extract text.
-    
-    Args:
-        file: PDF file to process
-        model_name: Name of the model to use
-        prompt: Optional custom prompt
-    
-    Returns:
-        Extracted text in markdown format
-    """
-    temp_pdf = None
-    temp_output = None
-    
+async def process_pdf(file: UploadFile = File(...), model_name: str = Form(...), prompt: Optional[str] = Form(None)):
+    temp_pdf_path = None
+    actual_output_path = None
     try:
-        # Save uploaded file to temp location
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_pdf:
             shutil.copyfileobj(file.file, temp_pdf)
             temp_pdf_path = temp_pdf.name
         
-        # Create temp output file
-        temp_output = tempfile.NamedTemporaryFile(delete=False, suffix=".md")
-        temp_output_path = temp_output.name
-        temp_output.close()
+        temp_out_base = tempfile.NamedTemporaryFile(delete=False, suffix=".json").name
         
-        # Process PDF
-        logger.info(f"Processing PDF with model: {model_name}")
-        result = pipeline.process_pdf(
-            pdf_path=temp_pdf_path,
-            model_name=model_name,
-            output_path=temp_output_path,
-            prompt=prompt
-        )
+        result = pipeline.process_pdf(pdf_path=temp_pdf_path, model_name=model_name, output_path=temp_out_base, prompt=prompt)
         
-        # Read the output
-        with open(temp_output_path, 'r', encoding='utf-8') as f:
-            markdown_text = f.read()
+        # Pipeline logic forces .json, we must find that specific file
+        actual_output_path = str(Path(temp_out_base).with_suffix('.json'))
+        
+        with open(actual_output_path, 'r', encoding='utf-8') as f:
+            json_text = f.read()
         
         return {
             "success": True,
-            "model": model_name,
-            "num_pages": result.get("num_pages", 0),
-            "markdown": markdown_text,
-            "processing_time": result.get("processing_time", 0)
+            "markdown": json_text, # Key 'markdown' used for UI compatibility
+            "output_file": actual_output_path,
+            "num_pages": result.get("num_pages", 0)
         }
-        
-    except Exception as e:
-        logger.error(f"Error processing PDF: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-        
     finally:
-        # Cleanup temp files
-        if temp_pdf and os.path.exists(temp_pdf_path):
-            os.unlink(temp_pdf_path)
-        if temp_output and os.path.exists(temp_output_path):
-            os.unlink(temp_output_path)
-
+        if temp_pdf_path and os.path.exists(temp_pdf_path): os.unlink(temp_pdf_path)
+        # We do NOT unlink actual_output_path here to allow UI download
 
 @app.post("/process/image")
 async def process_image(
@@ -157,34 +122,19 @@ async def process_image(
     model_name: str = Form(...),
     prompt: Optional[str] = Form(None)
 ):
-    """
-    Process an image file and extract text.
-    
-    Args:
-        file: Image file to process
-        model_name: Name of the model to use
-        prompt: Optional custom prompt
-    
-    Returns:
-        Extracted text in markdown format
-    """
-    temp_image = None
-    temp_output = None
+    temp_image_path = None
+    actual_output_path = None
     
     try:
-        # Save uploaded file to temp location
         suffix = Path(file.filename).suffix
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_image:
             shutil.copyfileobj(file.file, temp_image)
             temp_image_path = temp_image.name
         
-        # Create temp output file
-        temp_output = tempfile.NamedTemporaryFile(delete=False, suffix=".md")
+        temp_output = tempfile.NamedTemporaryFile(delete=False, suffix=".json")
         temp_output_path = temp_output.name
         temp_output.close()
         
-        # Process image
-        logger.info(f"Processing image with model: {model_name}")
         result = pipeline.process_image(
             image_path=temp_image_path,
             model_name=model_name,
@@ -192,28 +142,23 @@ async def process_image(
             prompt=prompt
         )
         
-        # Read the output
-        with open(temp_output_path, 'r', encoding='utf-8') as f:
-            markdown_text = f.read()
+        actual_output_path = str(Path(temp_output_path).with_suffix('.json'))
+        with open(actual_output_path, 'r', encoding='utf-8') as f:
+            json_text = f.read()
         
         return {
             "success": True,
             "model": model_name,
-            "markdown": markdown_text,
-            "text_length": len(markdown_text)
+            "markdown": json_text,
+            "output_file": actual_output_path, # FIX: Tells UI to download .json
+            "text_length": len(json_text)
         }
-        
     except Exception as e:
         logger.error(f"Error processing image: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-        
     finally:
-        # Cleanup temp files
-        if temp_image and os.path.exists(temp_image_path):
+        if temp_image_path and os.path.exists(temp_image_path):
             os.unlink(temp_image_path)
-        if temp_output and os.path.exists(temp_output_path):
-            os.unlink(temp_output_path)
-
 
 @app.get("/health")
 async def health_check():
