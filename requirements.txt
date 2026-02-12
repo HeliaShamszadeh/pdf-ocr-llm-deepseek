@@ -1,5 +1,12 @@
+# DeepSeek-OCR specific dependencies (NEW)
+einops
+addict
+easydict
+transformers==4.46.3  # Bumped from 4.45.0 for DeepSeek support
+tokenizers>=0.20.3
+
+# Core dependencies
 torch>=2.0.0
-transformers>=4.45.0
 pillow>=10.0.0
 pdf2image>=1.16.3
 pyyaml>=6.0
@@ -17,9 +24,9 @@ gradio>=4.0.0
 python-multipart>=0.0.6
 
 # Optional: Flash Attention 2 for faster inference (requires CUDA)
-# Uncomment and install separately if you have CUDA:
-# flash-attn>=2.3.0
+# Note: This often fails to install via requirements.txt. 
+# It is better to install it manually: pip install flash-attn --no-build-isolation
+# flash-attn>=2.7.3
 
-# System dependencies (install separately):
-# - poppler-utils (for pdf2image)
-
+# System dependencies (install via apt-get/brew):
+# - poppler-utils (required for pdf2image)

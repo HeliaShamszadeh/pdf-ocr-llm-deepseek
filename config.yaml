@@ -1,4 +1,9 @@
 models:
+  deepseek:
+    - name: "DeepSeek-OCR"
+      model_id: "deepseek-ai/DeepSeek-OCR"
+      type: "deepseek"
+      
   qwen25vl:
     - name: "Qwen2.5-VL-3B-Instruct"
       model_id: "Qwen/Qwen2.5-VL-3B-Instruct"

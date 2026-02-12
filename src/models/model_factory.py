@@ -5,6 +5,7 @@ from .base_model import BaseOCRModel
 from .qwen25vl_model import Qwen25VLModel
 from .qwen3vl_model import Qwen3VLModel
 from .internvl_model import InternVLModel
+from .deepseek_ocr_model import DeepSeekOCRModel
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,8 @@ class ModelFactory:
     MODEL_TYPES = {
         'qwen25vl': Qwen25VLModel,
         'qwen3vl': Qwen3VLModel,
-        'internvl': InternVLModel
+        'internvl': InternVLModel,
+        'deepseek': DeepSeekOCRModel
     }
     
     @staticmethod
